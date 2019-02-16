@@ -3,9 +3,7 @@ package br.com.caelum.financas.modelo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
@@ -13,40 +11,36 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import br.com.caelum.financas.listener.MovimentacaoListener;
-
 @Entity
-@EntityListeners(MovimentacaoListener.class)
 public class Movimentacao {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	@Enumerated(EnumType.STRING)
-	private TipoMovimentacao tipo;
 	private String descricao;
 	private LocalDateTime data;
 	private BigDecimal valor;
-	@ManyToOne(cascade = CascadeType.PERSIST, optional = false)
+
+	@ManyToOne
 	private Conta conta;
 
-	public Movimentacao() {
+	@Enumerated(EnumType.STRING)
+	private TipoMovimentacao tipoMovimentacao;
+
+	public TipoMovimentacao getTipoMovimentacao() {
+		return tipoMovimentacao;
 	}
 
-	public Movimentacao(TipoMovimentacao tipo, String descricao, LocalDateTime data, BigDecimal valor, Conta conta) {
-		this.tipo = tipo;
-		this.descricao = descricao;
-		this.data = data;
-		this.valor = valor;
-		this.conta = conta;
+	public void setTipoMovimentacao(TipoMovimentacao tipoMovimentacao) {
+		this.tipoMovimentacao = tipoMovimentacao;
 	}
 
-	public TipoMovimentacao getTipo() {
-		return tipo;
+	public Integer getId() {
+		return id;
 	}
 
-	public void setTipo(TipoMovimentacao tipo) {
-		this.tipo = tipo;
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 	public String getDescricao() {
@@ -79,16 +73,6 @@ public class Movimentacao {
 
 	public void setConta(Conta conta) {
 		this.conta = conta;
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	@Override
-	public String toString() {
-		return "Movimentacao [id=" + id + ", tipo=" + tipo + ", descricao=" + descricao + ", data=" + data + ", valor="
-				+ valor + ", conta=" + conta + "]";
 	}
 
 }

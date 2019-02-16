@@ -15,6 +15,9 @@ public class TestaPesquisaIdMovimentacao {
 			MovimentacaoDAO dao = new MovimentacaoDAO(em);
 			Movimentacao movimentacao = dao.busca(2);
 			System.out.println("Titular da movimentacao: " + movimentacao.getConta().getTitular());
+			em.getTransaction().begin();
+			movimentacao.setDescricao("despesa");
+			em.getTransaction().commit();
 		} catch (Exception e) {
 			em.getTransaction().rollback();
 		} finally {
