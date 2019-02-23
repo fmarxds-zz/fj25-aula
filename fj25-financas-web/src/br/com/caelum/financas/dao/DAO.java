@@ -3,12 +3,12 @@ package br.com.caelum.financas.dao;
 import java.util.Collections;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 public abstract class DAO<T, K> {
 	
-	@PersistenceContext
+	@Inject
 	private EntityManager em;
 	private final Class<T> clazz;
 	
@@ -21,14 +21,17 @@ public abstract class DAO<T, K> {
 	}
 
 	public void adiciona(T t) {
+		em.joinTransaction();
 		this.em.persist(t);
 	}
 	
 	public void altera(T t) {
+		em.joinTransaction();
 		this.em.merge(t);
 	}
 	
 	public void remove(T...t) {
+		em.joinTransaction();
 		for (T i : t) {
 			this.em.remove(em.merge(i));
 		}
