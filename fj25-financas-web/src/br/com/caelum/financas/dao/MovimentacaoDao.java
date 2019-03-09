@@ -36,6 +36,7 @@ public class MovimentacaoDao extends DAO<Movimentacao, Integer> {
 		return super.getEm().createQuery(query, Movimentacao.class)
 			.setParameter("valor", valor)
 			.setParameter("tipo", tipo)
+			.setHint("org.hibernate.cacheable", "true")
 			.getResultList();
 	}
 	

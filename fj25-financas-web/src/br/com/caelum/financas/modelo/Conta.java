@@ -1,14 +1,32 @@
 package br.com.caelum.financas.modelo;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import br.com.caelum.financas.validator.NumeroEAgencia;
 
 @Entity
+@Cacheable
+@NumeroEAgencia
+@Table(uniqueConstraints = {
+		@UniqueConstraint(columnNames = {"agencia", "numero"})
+})
 public class Conta {
 
 	public List<Movimentacao> getMovimentacoes() {
@@ -22,11 +40,23 @@ public class Conta {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
+	
+	@NotBlank
+	@Pattern(regexp = "[A-Z].*")
 	private String titular;
+	
 	private String agencia;
 	private String numero;
+	
+	@NotBlank
+	@Size(min = 3, max = 20)
+	@Column(length = 20, nullable = false)
 	private String banco;
 	
+	@Version
+	private LocalDateTime modifiedAt;
+	
+	@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 	@OneToMany(mappedBy = "conta")
 	private List<Movimentacao> movimentacoes;
 
@@ -68,6 +98,14 @@ public class Conta {
 
 	public void setBanco(String banco) {
 		this.banco = banco;
+	}
+
+	public LocalDateTime getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(LocalDateTime modifiedAt) {
+		this.modifiedAt = modifiedAt;
 	}
 
 }

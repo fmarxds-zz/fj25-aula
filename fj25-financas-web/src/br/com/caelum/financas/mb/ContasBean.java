@@ -2,10 +2,15 @@ package br.com.caelum.financas.mb;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import br.com.caelum.financas.dao.ContaDao;
 import br.com.caelum.financas.dao.MovimentacaoDao;
@@ -17,6 +22,9 @@ import br.com.caelum.financas.modelo.Movimentacao;
 public class ContasBean implements Serializable {
     
     private static final long serialVersionUID = 1L;
+    
+    @Inject
+    private Validator validator;
 
     @Inject
     private ContaDao dao;
@@ -36,6 +44,11 @@ public class ContasBean implements Serializable {
 
 	public void grava() {
 		System.out.println("Gravando a conta");
+		
+		Set<ConstraintViolation<Conta>> erros = validator.validate(conta);
+		erros.forEach(err -> {
+			geraMensagemJsf(err);
+		});
 		
 		if (this.conta.getId() == null) {
 			dao.adiciona(this.conta);
@@ -80,5 +93,9 @@ public class ContasBean implements Serializable {
 		if (this.contas == null || this.contas.isEmpty()) {
 			this.contas = dao.lista();
 		}
+	}
+	
+	private void geraMensagemJsf(ConstraintViolation<Conta> erro) {
+		FacesContext.getCurrentInstance().addMessage("", new FacesMessage(erro.getPropertyPath().toString() + "  " + erro.getMessage()));
 	}
 }

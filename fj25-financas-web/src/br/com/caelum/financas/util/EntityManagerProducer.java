@@ -8,6 +8,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
+import br.com.caelum.financas.wrapper.EntityManagerWrapper;
+
 @ApplicationScoped
 public class EntityManagerProducer {
 	
@@ -17,7 +19,7 @@ public class EntityManagerProducer {
 	@Produces
 	@RequestScoped
 	public EntityManager getEntityManager() {
-		return this.factory.createEntityManager();
+		return new EntityManagerWrapper(factory.createEntityManager());
 	}
 	
 	public void close (@Disposes EntityManager entityManager) {
