@@ -13,8 +13,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
 import br.com.caelum.financas.dao.ContaDao;
+import br.com.caelum.financas.dao.GerenteDao;
 import br.com.caelum.financas.dao.MovimentacaoDao;
 import br.com.caelum.financas.modelo.Conta;
+import br.com.caelum.financas.modelo.GerenteConta;
 import br.com.caelum.financas.modelo.Movimentacao;
 
 @Named
@@ -30,9 +32,12 @@ public class ContasBean implements Serializable {
     private ContaDao dao;
     @Inject
     private MovimentacaoDao movDao;
+    @Inject
+    private GerenteDao gerenteDao;
     
 	private Conta conta = new Conta();
 	private List<Conta> contas;
+	private Integer gerenteId;
 
 	public Conta getConta() {
 		return conta;
@@ -49,6 +54,12 @@ public class ContasBean implements Serializable {
 		erros.forEach(err -> {
 			geraMensagemJsf(err);
 		});
+		
+		if (gerenteId != null) {
+			GerenteConta gerente = gerenteDao.busca(gerenteId);
+			gerente.setNumeroDaConta(this.conta.getNumero());
+			this.conta.setGerente(gerente);
+		}
 		
 		if (this.conta.getId() == null) {
 			dao.adiciona(this.conta);
@@ -87,6 +98,7 @@ public class ContasBean implements Serializable {
 	 */
 	private void limpaFormularioDoJSF() {
 		this.conta = new Conta();
+		this.gerenteId = null;
 	}
 	
 	private void atualizaListaContas() {
@@ -97,5 +109,13 @@ public class ContasBean implements Serializable {
 	
 	private void geraMensagemJsf(ConstraintViolation<Conta> erro) {
 		FacesContext.getCurrentInstance().addMessage("", new FacesMessage(erro.getPropertyPath().toString() + "  " + erro.getMessage()));
+	}
+
+	public Integer getGerenteId() {
+		return gerenteId;
+	}
+
+	public void setGerenteId(Integer gerenteId) {
+		this.gerenteId = gerenteId;
 	}
 }

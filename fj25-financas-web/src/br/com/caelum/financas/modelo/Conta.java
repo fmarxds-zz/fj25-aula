@@ -8,7 +8,9 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
@@ -18,10 +20,12 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.Audited;
 
 import br.com.caelum.financas.validator.NumeroEAgencia;
 
 @Entity
+@Audited
 @Cacheable
 @NumeroEAgencia
 @Table(uniqueConstraints = {
@@ -59,6 +63,10 @@ public class Conta {
 	@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 	@OneToMany(mappedBy = "conta")
 	private List<Movimentacao> movimentacoes;
+	
+	@OneToOne
+	@JoinColumn(unique = true)
+	private Gerente gerente;
 
 	public Integer getId() {
 		return id;
@@ -106,6 +114,20 @@ public class Conta {
 
 	public void setModifiedAt(LocalDateTime modifiedAt) {
 		this.modifiedAt = modifiedAt;
+	}
+
+	public Gerente getGerente() {
+		return gerente;
+	}
+
+	public void setGerente(Gerente gerente) {
+		this.gerente = gerente;
+	}
+
+	@Override
+	public String toString() {
+		return "Conta [id=" + id + ", titular=" + titular + ", agencia=" + agencia + ", numero=" + numero + ", banco="
+				+ banco + ", modifiedAt=" + modifiedAt + "]";
 	}
 
 }

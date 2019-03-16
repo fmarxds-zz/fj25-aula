@@ -1,10 +1,23 @@
 package br.com.caelum.financas.dao;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.Query;
+import org.hibernate.search.jpa.FullTextEntityManager;
+import org.hibernate.search.jpa.FullTextQuery;
+import org.hibernate.search.jpa.Search;
 
 import br.com.caelum.financas.exception.ValorInvalidoException;
 import br.com.caelum.financas.modelo.Conta;
@@ -17,6 +30,71 @@ public class MovimentacaoDao extends DAO<Movimentacao, Integer> {
 	
 	public MovimentacaoDao() {
 		super(Movimentacao.class);
+	}
+	
+	public List<Movimentacao> buscaPorDescricao(String desc) {
+		FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(super.getEm());
+		Analyzer analyzer = fullTextEntityManager.getSearchFactory().getAnalyzer(Movimentacao.class);
+		QueryParser parser = new QueryParser("descricao", analyzer);
+		
+		try {
+			
+			Query query = parser.parse(desc);
+			FullTextQuery textQuery = fullTextEntityManager.createFullTextQuery(query, Movimentacao.class);
+			
+			return textQuery.<Movimentacao>getResultList();
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+	
+	public List<Movimentacao> pesquisa(Conta conta, TipoMovimentacao tipo, Integer mes) {
+		CriteriaBuilder builder = super.getEm().getCriteriaBuilder();
+		CriteriaQuery<Movimentacao> criteria = builder.createQuery(Movimentacao.class);
+		
+		Root<Movimentacao> root = criteria.from(Movimentacao.class);
+		
+		Predicate predicate = builder.conjunction();
+		
+		if (conta.getId() != null) {
+			predicate = builder.and(predicate, builder.equal(root.<Conta>get("conta"), conta));
+		}
+		
+		if (tipo != null) {
+			predicate = builder.and(predicate, builder.equal(root.<TipoMovimentacao>get("tipoMovimentacao"), tipo));
+		}
+		
+		if (mes != null && mes != 0) {
+			Expression<Integer> function = builder.function("month", Integer.class, root.<LocalDateTime>get("data"));
+			predicate = builder.and(predicate, builder.equal(function, mes));
+		}
+		
+		criteria.where(predicate);
+		
+		return super.getEm().createQuery(criteria).getResultList();
+		
+	}
+	
+	public BigDecimal somaMovimentacoesDoTitular(String titular) {
+		
+		CriteriaBuilder criteriaBuilder = super.getEm().getCriteriaBuilder();
+		CriteriaQuery<BigDecimal> criteria = criteriaBuilder.createQuery(BigDecimal.class);
+		
+		Root<Movimentacao> root = criteria.from(Movimentacao.class);
+		
+		criteria.select(criteriaBuilder.sum(root.<BigDecimal>get("valor")));
+		criteria.where(criteriaBuilder.like(root.<Conta>get("conta").<String>get("titular"), "%" + titular + "%"));
+		
+		return super.getEm().createQuery(criteria).getSingleResult();
+	}
+	
+	public List<Movimentacao> listaTodasComCriteria() {
+		CriteriaBuilder builder = super.getEm().getCriteriaBuilder();
+		CriteriaQuery<Movimentacao> criteriaQuery = builder.createQuery(Movimentacao.class);
+		
+		criteriaQuery.from(Movimentacao.class);
+		
+		return super.getEm().createQuery(criteriaQuery).getResultList();
 	}
 	
 	public List<Movimentacao> listaPorIdConta(Integer id) {
